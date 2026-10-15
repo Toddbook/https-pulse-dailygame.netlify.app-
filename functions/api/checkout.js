@@ -19,7 +19,7 @@ export async function onRequestPost({ request, env }) {
     return json({ url: session.url });
   } catch (e) {
     console.error('checkout failed:', e.message);
-    return json({ error: 'Could not start checkout' }, 502);
+    return json({ error: 'Could not start checkout', detail: String(e.message || '').slice(0, 200) }, 502);
   }
 }
 export const onRequest = () => json({ error: 'POST only' }, 405);

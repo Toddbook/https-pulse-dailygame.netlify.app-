@@ -456,7 +456,7 @@ function statusVerdict(res){
     var msg=$('keyMsg');msg.textContent='Opening secure checkout…';
     api('checkout',{plan:plan}).then(function(res){
       if(res&&res.url){window.location.href=res.url;}
-      else{msg.textContent='Could not start checkout. Please try again in a moment.';}
+      else{msg.textContent='Could not start checkout. Please try again in a moment.'+(res&&res.detail?' ('+res.detail+')':'');}
     });
   }
   ['buyYearly','planBuyY'].forEach(function(id){$(id).addEventListener('click',function(e){e.preventDefault();openPlus();startCheckout('yearly');});});
