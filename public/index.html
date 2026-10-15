@@ -283,7 +283,7 @@ footer{border-top:1px solid var(--line);padding-block:36px 48px;color:var(--mute
 /*CONFIG*/
 // Set enabled to true only after the Stripe functions are deployed and tested (see the setup guide).
 // While it is false the site shows PULSE+ as "coming soon" and nothing can be bought or unlocked.
-var PLUS={enabled:true,api:'/.netlify/functions'};
+var PLUS={enabled:false,api:'/api'};
 /*END*/
 
 /*ENGINE*/
@@ -603,7 +603,7 @@ function statusVerdict(res){
   // number and stores nothing else. Every page load counts, so refreshes count again. The box stays hidden if it fails.
   (function(){
     if(!/^https?:$/.test(location.protocol))return;
-    fetch('/.netlify/functions/visitor-count',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+    fetch('/api/visitor-count',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
       .then(function(r){if(!r.ok)throw new Error('x');return r.json();})
       .then(function(d){if(Number.isFinite(d.total)){$('visitorCount').textContent=d.total.toLocaleString('en-GB');$('visitorBox').hidden=false;}})
       .catch(function(){});
