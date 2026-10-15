@@ -1,0 +1,38 @@
+{ "name": "pulse-site", "private": true, "type": "module" }
+
+# PULSE+ on Cloudflare Pages (free)
+
+This version runs the three Stripe programs on Cloudflare Pages, which is free for commercial sites.
+
+## 1. Add these files to the GitHub repository you already made (pulse-site)
+1. Unzip pulse-cloudflare.zip.
+2. On github.com open pulse-site > Add file > Upload files.
+3. Open the unzipped folder, press Command + A, and drag everything into GitHub (folders functions, lib, public and the loose files).
+   Files with the same name (public/index.html, package.json) are replaced. The old netlify folder can stay, it does nothing here.
+4. Press Commit changes.
+
+## 2. Connect Cloudflare
+1. Make a free account at dash.cloudflare.com.
+2. Workers & Pages > Create application > Pages > Import an existing Git repository. Connect GitHub and choose pulse-site.
+3. Production branch: main. Build command: exit 0. Build output directory: public. Press Save and Deploy.
+
+## 3. Add your three Stripe values
+Project > Settings > Variables and Secrets (or Environment variables) > Production > Add:
+- STRIPE_SECRET_KEY : your sk_test_ key (choose the Secret type)
+- STRIPE_PRICE_MONTHLY : the monthly price_ ID
+- STRIPE_PRICE_YEARLY : the yearly price_ ID
+Then go to Deployments and redeploy (Retry deployment, or push any small change).
+
+## 4. Turn PULSE+ on and test
+1. On GitHub edit public/index.html and change enabled:false to enabled:true. Commit. Cloudflare redeploys by itself.
+2. Open your pages.dev address, press PULSE+ > Yearly, pay with card 4242 4242 4242 4242, any future date, any 3-digit code.
+3. Check this address shows "POST only": your-address.pages.dev/api/checkout
+
+## Visitor counter (optional, later)
+The counter box stays hidden until you give the project a KV store called COUNTER (Workers & Pages > KV > Create, then
+project Settings > Bindings > KV namespace, variable name COUNTER). The count starts at 0.
+
+## Things to know
+- VAT: Stripe does not collect UK VAT for you. Ask an accountant whether you must register, and look at Stripe Tax.
+- The lock is in the browser. Anyone with the unlock link can use PULSE+.
+- Update your privacy policy and terms to name Stripe and Cloudflare.
