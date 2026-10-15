@@ -19,17 +19,7 @@ export async function onRequestPost({ request, env }) {
     return json({ url: session.url });
   } catch (e) {
     console.error('checkout failed:', e.message);
-    // TEMPORARY diagnostics: say which account the key belongs to and which prices it can see. Remove once checkout works.
-    let extra = '';
-    try {
-      const key = String(env.STRIPE_SECRET_KEY || '');
-      const list = await stripe(env, 'GET', '/v1/prices', { limit: 5, active: 'true' });
-      const ids = (list.data || []).map((p) => p.id).join(', ') || 'none';
-      extra = ` | key account ${key.slice(8, 24)} | prices it can see: ${ids}`;
-    } catch (e2) {
-      extra = ` | could not list prices: ${String(e2.message || '').slice(0, 80)}`;
-    }
-    return json({ error: 'Could not start checkout', detail: (String(e.message || '') + extra).slice(0, 500) }, 502);
+    return json({ error: 'Could not start checkout' }, 502);
   }
 }
 export const onRequest = () => json({ error: 'POST only' }, 405);
