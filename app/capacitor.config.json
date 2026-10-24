@@ -1,0 +1,8 @@
+{
+  "appId": "com.pulsedaily.app",
+  "appName": "PULSE Daily",
+  "webDir": "www",
+  "backgroundColor": "#0E0F24",
+  "ios": { "contentInset": "never" },
+  "android": { "allowMixedContent": false }
+}

@@ -1,0 +1,116 @@
+# Builds the PULSE Daily phone apps from public/index.html (see app/README.md).
+# Every push and pull request checks that both apps still build. Store uploads only happen when you run the
+# workflow by hand with "upload" ticked, and only once the signing secrets are added.
+name: Mobile app
+
+on:
+  push:
+    branches: [main]
+    paths: ['public/index.html', 'app/**', '.github/workflows/mobile-app.yml']
+  pull_request:
+    paths: ['public/index.html', 'app/**', '.github/workflows/mobile-app.yml']
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: Upload to Google Play (internal testing) and TestFlight
+        type: boolean
+        default: false
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      APP_VERSION_CODE: ${{ github.run_number }}
+      KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build && npx cap sync android
+      - name: Use the upload key
+        if: env.KEYSTORE_B64 != ''
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+      - name: Build the Play Store bundle
+        working-directory: app/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          export APP_VERSION_NAME=$(node -p "require('../package.json').version")
+          ./gradlew --no-daemon bundleRelease assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: |
+            app/android/app/build/outputs/bundle/release/app-release.aab
+            app/android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload to Google Play internal testing
+        if: inputs.upload && env.PLAY_JSON != '' && env.KEYSTORE_B64 != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.pulsedaily.app
+          releaseFiles: app/android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: draft
+
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      ASC_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run build && npx cap sync ios
+      - name: Check the app compiles (no signing)
+        if: ${{ !inputs.upload }}
+        run: >
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release
+          -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
+      - name: Archive and upload to TestFlight
+        if: inputs.upload && env.ASC_KEY != ''
+        run: |
+          KEY="$RUNNER_TEMP/AuthKey.p8"; printf '%s' "$ASC_KEY" > "$KEY"
+          VERSION=$(node -p "require('./package.json').version")
+          AUTH="-allowProvisioningUpdates -authenticationKeyPath $KEY -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID"
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            DEVELOPMENT_TEAM=$TEAM_ID MARKETING_VERSION=$VERSION CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            $AUTH archive
+          cat > "$RUNNER_TEMP/export.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/export.plist" -exportPath "$RUNNER_TEMP/export" $AUTH
