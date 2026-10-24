@@ -1,0 +1,21 @@
+{
+  "name": "pulse-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-www.mjs",
+    "sync": "npm run build && cap sync",
+    "assets": "capacitor-assets generate --android --ios --iconBackgroundColor '#0E0F24' --iconBackgroundColorDark '#0E0F24' --splashBackgroundColor '#0E0F24' --splashBackgroundColorDark '#0E0F24'"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/share": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.3"
+  }
+}
