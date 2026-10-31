@@ -12,9 +12,10 @@ const out = path.join(app, 'store/screenshots');
 
 const SCENES = [
   { file: '1-play', title: 'One pattern.', sub: 'Everyone plays the same one each day.', setup: lightPads },
-  { file: '2-result', title: 'Share your run', sub: 'A spoiler-free result card for the group chat.', setup: showResult },
-  { file: '3-stats', title: 'Build your streak', sub: 'Stats, history and a daily reminder.', setup: openStats },
-  { file: '4-twists', title: 'Daily twists', sub: 'Mirror, Reverse, Ghost, Surge and more.', setup: showTwists },
+  { file: '2-stages', title: 'It gets harder', sub: 'Decoys, double twists and a countdown.', setup: showStages },
+  { file: '3-result', title: 'Share your run', sub: 'A spoiler-free result card for the group chat.', setup: showResult },
+  { file: '4-stats', title: 'Build your streak', sub: 'Stats, history and a daily reminder.', setup: openStats },
+  { file: '5-twists', title: 'Seven daily twists', sub: 'Mirror, Rotate, Blackout and more.', setup: showTwists },
 ];
 // Store sizes: Apple 6.9" iPhone (1320×2868) and a 9:16 Android phone (1080×1920). Sizes are CSS px at 3x.
 const SETS = [
@@ -32,9 +33,20 @@ function seedStats() {
   localStorage.setItem('pulse:web:v1', JSON.stringify({ streak: 3, best: 598, lastPlayed: Object.keys(r).sort().pop(), results: r, archive: {} }));
 }
 async function lightPads(p) {
-  await p.evaluate(() => { const pads = document.querySelectorAll('.pad'); [0, 4, 8].forEach((i) => pads[i].classList.add('on'));
-    document.getElementById('status').textContent = 'Watch closely…'; document.getElementById('start').style.visibility = 'hidden'; });
-  await p.evaluate(() => document.getElementById('play').scrollIntoView());
+  // Round 5: two pads lit, one hollow decoy (to ignore), stage 2 of 4 on the bar.
+  await p.evaluate(() => {
+    const pads = document.querySelectorAll('.pad'); [0, 8].forEach((i) => pads[i].classList.add('on')); pads[4].classList.add('decoy');
+    const bar = document.getElementById('stagebar');
+    if (bar && !bar.children.length) for (let i = 0; i < 4; i++) bar.appendChild(document.createElement('span'));
+    if (bar) [...bar.children].forEach((b, i) => b.classList.toggle('on', i < 2));
+    document.getElementById('roundlabel').textContent = 'Round 5'; document.getElementById('score').textContent = '86';
+    document.getElementById('status').textContent = 'Watch closely… ignore the hollow ones';
+    document.getElementById('start').style.visibility = 'hidden';
+    document.getElementById('play').scrollIntoView();
+  });
+}
+async function showStages(p) {
+  await p.evaluate(() => [...document.querySelectorAll('h2')].find((h) => /harder/i.test(h.textContent)).closest('section').scrollIntoView());
 }
 async function showResult(p) {
   await p.evaluate(() => {

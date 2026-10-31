@@ -32,12 +32,17 @@ PULSE is a one-minute memory game with a new pattern every day.
 Watch nine glowing pads flash in sequence, then tap them back. Each round adds one more step. Miss three and your run is over. Everyone plays the same pattern on the same day, so you can compare scores with friends.
 
 A NEW TWIST EVERY DAY
-Each day brings a rule change that keeps you on your toes:
+Each day brings one of seven rule changes that keep you on your toes:
 • Classic: repeat the pattern exactly
 • Mirror: tap the mirror image, left and right swapped
 • Reverse: play it backwards, last pad first
 • Ghost: flashes are lightning quick
 • Surge: everything runs 40% faster
+• Rotate: tap the pattern turned a quarter turn
+• Blackout: every pad goes grey, so remember positions, not colours
+
+IT GETS HARDER THE LONGER YOU LAST
+Every run climbs through four stages. After a warm-up, hollow decoy flashes sneak in. Then a second twist stacks on the first, and from round 10 every tap is on a shrinking timer.
 
 BUILT TO BE SHARED
 Your run becomes a grid of green and red squares you can paste into any group chat without spoiling the pattern.
