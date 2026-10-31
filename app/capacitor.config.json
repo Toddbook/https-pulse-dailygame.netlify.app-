@@ -3,6 +3,16 @@
   "appName": "PULSE Daily",
   "webDir": "www",
   "backgroundColor": "#0E0F24",
-  "ios": { "contentInset": "never" },
-  "android": { "allowMixedContent": false }
+  "ios": {
+    "contentInset": "never"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_pulse",
+      "iconColor": "#2EE59D"
+    }
+  }
 }

@@ -10,7 +10,10 @@ so a change to the game reaches the site and the apps together. The game file is
 - Fonts load from `static/fonts` instead of Google, so the app looks right offline.
 - PULSE+ is always off. App stores don't allow subscriptions sold through Stripe, so the PULSE+ box, plans, archive and practice buttons are hidden (`static/app.css`).
 - Sign-up links, the visitor counter and the FAQ are hidden, the game sits at the top of the screen, and the phone is locked to portrait.
-- The Share button opens the phone's share sheet (`static/app.js`).
+- `static/app.js` adds what only the app can do: the phone's share sheet, haptics on each tap, a **Stats** screen
+  (streaks, averages, the last five weeks) and an optional **daily reminder**. The reminder is a local notification
+  scheduled on the phone for the next two weeks, skipping days already played. It reads the game's saved stats and never
+  changes them.
 
 If the website file changes so one of these edits no longer matches, the build stops with a message instead of shipping a broken app.
 
@@ -29,6 +32,14 @@ npx cap open android  # or: npx cap open ios
 ```
 
 To change the icon or splash screen: `node scripts/make-icons.cjs assets`, then `npm run assets`.
+
+## App Store and Google Play
+
+- `store/listing.md` has the store text, age rating, privacy answers and reviewer notes to copy into each store.
+- `npm run screenshots` rebuilds the screenshots in `store/screenshots`. Rerun it whenever the game's look changes.
+- The privacy policy is `public/privacy.html` on the website. The app links to it from the Stats screen.
+- `ios/App/App/PrivacyInfo.xcprivacy` is Apple's privacy manifest: no tracking and no data collected.
+- iOS is set to iPhone only, so no iPad screenshots are needed.
 
 ## Releasing
 
