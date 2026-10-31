@@ -56,6 +56,7 @@ h1 span{background:linear-gradient(90deg,var(--p3),var(--p4),var(--p5));-webkit-
 .small{font-size:13px;color:var(--muted);margin:0 0 6px}
 select,input[type=text]{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:500 14px var(--mono)}
 .demohead{display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.demohead span:last-child{white-space:nowrap}
 .scorebar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .score{font-family:var(--display);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums}
 .combo{font-family:var(--mono);font-size:12px;color:var(--gold);min-height:1.2em}
@@ -65,6 +66,16 @@ select,input[type=text]{width:100%;background:var(--bg);color:var(--fg);border:1
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .pad{aspect-ratio:1;border:0;border-radius:20px;cursor:pointer;opacity:.25;transition:opacity .08s,transform .08s,box-shadow .08s;background:var(--c);touch-action:manipulation}
 .pad.on{opacity:1;transform:scale(1.05);box-shadow:0 0 34px var(--c)}
+.pad.decoy{opacity:1;background:transparent;box-shadow:inset 0 0 0 5px var(--c)}
+.grid.blackout .pad{--c:#8E8BC4!important}
+.stagebar{display:flex;gap:6px;margin:0 0 12px}
+.stagebar span{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.stagebar span.on{background:var(--gold)}
+.timer{height:6px;border-radius:3px;background:var(--line);margin:0 0 12px;overflow:hidden;visibility:hidden}
+.timer.on{visibility:visible}
+.timer i{display:block;height:100%;width:100%;background:var(--gold)}
+.timer.low i{background:var(--bad)}
+.status.alert{color:var(--gold)}
 .status{text-align:center;font-weight:700;margin:16px 0 0;min-height:1.6em}
 .twistdesc{text-align:center;color:var(--muted);font-size:14px;margin:4px 0 0}
 .demoact{display:flex;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap}
@@ -117,7 +128,7 @@ h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,3.6vw,38px);l
 .faq p{color:var(--muted);margin:10px 0 0;max-width:46em}
 footer{border-top:1px solid var(--line);padding-block:36px 48px;color:var(--muted);font-size:14px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
 @media (max-width:820px){.hero{grid-template-columns:1fr;gap:32px;padding-block:20px 48px}.navnote{display:none}}
-@media (prefers-reduced-motion:reduce){.pad{transition:none}}
+@media (prefers-reduced-motion:reduce){.pad{transition:none}.timer i{transition:none!important}}
 </style>
 </head>
 <body>
@@ -164,6 +175,8 @@ footer{border-top:1px solid var(--line);padding-block:36px 48px;color:var(--mute
         <div><div class="score" id="score">0</div><div class="combo" id="combo"></div></div>
         <div class="lives" id="lives" aria-label="Lives left"></div>
       </div>
+      <div class="stagebar" id="stagebar" aria-hidden="true"></div>
+      <div class="timer" id="timer" aria-hidden="true"><i id="timerFill"></i></div>
       <div class="grid" id="grid" role="group" aria-label="Pattern pads"></div>
       <p class="status" id="status" aria-live="polite">Press start, then watch closely.</p>
       <p class="twistdesc" id="twistdesc"></p>
@@ -215,13 +228,26 @@ footer{border-top:1px solid var(--line);padding-block:36px 48px;color:var(--mute
 
   <section>
     <h2>A new twist every midnight</h2>
-    <p class="sub">The daily pattern is the same for every player in the UK, but the rules change. Five twists rotate, so no two days feel the same.</p>
+    <p class="sub">The daily pattern is the same for every player in the UK, but the rules change. Seven twists rotate, so no two days feel the same.</p>
     <div class="twists">
       <div class="twist" style="--c:var(--p1)"><h3>Classic</h3><p>Repeat the pattern exactly as it flashed.</p></div>
       <div class="twist" style="--c:var(--p4)"><h3>Mirror</h3><p>Tap the mirror image, with left and right swapped.</p></div>
       <div class="twist" style="--c:var(--p6)"><h3>Reverse</h3><p>Play the pattern backwards, last pad first.</p></div>
       <div class="twist" style="--c:var(--p8)"><h3>Ghost</h3><p>Flashes are lightning quick. Blink and you miss it.</p></div>
       <div class="twist" style="--c:var(--p0)"><h3>Surge</h3><p>Everything runs 40% faster. Hold your nerve.</p></div>
+      <div class="twist" style="--c:var(--p5)"><h3>Rotate</h3><p>Tap the pattern turned a quarter turn clockwise.</p></div>
+      <div class="twist" style="--c:var(--p2)"><h3>Blackout</h3><p>Every pad turns the same grey. Remember positions, not colours.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>It gets harder the longer you last</h2>
+    <p class="sub">Every run climbs through four stages. Each one keeps everything from the stage before.</p>
+    <div class="twists">
+      <div class="twist" style="--c:var(--p3)"><h3>1 · Warm-up</h3><p>Rounds 1 to 3. Just today's twist.</p></div>
+      <div class="twist" style="--c:var(--p2)"><h3>2 · Decoys</h3><p>From round 4, hollow fake flashes sneak into the pattern. Ignore them.</p></div>
+      <div class="twist" style="--c:var(--p7)"><h3>3 · Double twist</h3><p>From round 7, a second twist stacks on the first. Mirror and Reverse at once, anyone?</p></div>
+      <div class="twist" style="--c:var(--p0)"><h3>4 · Countdown</h3><p>From round 10, every tap is on a timer that keeps getting shorter.</p></div>
     </div>
   </section>
 
@@ -291,8 +317,17 @@ var MODS=[
   {id:'classic',name:'Classic',desc:'Repeat the pattern exactly.'},
   {id:'mirror',name:'Mirror',desc:'Tap the mirror image, with left and right swapped.'},
   {id:'reverse',name:'Reverse',desc:'Tap the pattern backwards.'},
+  {id:'rotate',name:'Rotate',desc:'Tap the pattern turned a quarter turn clockwise.'},
   {id:'ghost',name:'Ghost',desc:'Flashes are lightning quick. Blink and you miss it.'},
-  {id:'surge',name:'Surge',desc:'Everything runs 40% faster.'}
+  {id:'surge',name:'Surge',desc:'Everything runs 40% faster.'},
+  {id:'blackout',name:'Blackout',desc:'Every pad is the same grey. Go by position alone.'}
+];
+// The run gets harder in stages. Each stage keeps everything from the stages before it.
+var STAGES=[
+  {from:1,name:'Warm-up',note:''},
+  {from:4,name:'Decoys',note:'Hollow flashes are fakes. Ignore them.'},
+  {from:7,name:'Double twist',note:'A second twist joins the first.'},
+  {from:10,name:'Countdown',note:'Beat the timer on every tap.'}
 ];
 var MAX_LIVES=3;
 function hashString(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
@@ -304,28 +339,56 @@ function ukDate(){
 function prevKey(key){var p=key.split('-').map(Number);return new Date(Date.UTC(p[0],p[1]-1,p[2]-1)).toISOString().slice(0,10);}
 function dailySeed(k){return hashString('pulse:'+k);}
 function dailyModifier(k){return MODS[hashString('mod:'+k)%MODS.length];}
+// The twist that joins at the Double twist stage: never Classic, never the same as the first.
+function secondModifier(seed,first){
+  var pool=MODS.filter(function(m){return m.id!=='classic'&&m.id!==first.id;});
+  return pool[hashString('mod2:'+seed)%pool.length];
+}
+function stageIndex(round){var s=0;for(var i=0;i<STAGES.length;i++)if(round>=STAGES[i].from)s=i;return s;}
+function activeMods(round,first,second){return stageIndex(round)>=2?[first,second]:[first];}
+function hasMod(mods,id){for(var i=0;i<mods.length;i++)if(mods[i].id===id)return true;return false;}
 function buildSequence(seed,length){
   length=length||40;var rand=mulberry32(seed),seq=[];
   while(seq.length<length){var pad=Math.floor(rand()*9),n=seq.length;if(n>=2&&seq[n-1]===pad&&seq[n-2]===pad)continue;seq.push(pad);}
   return seq;
 }
 function mirrorPad(i){var row=Math.floor(i/3),col=i%3;return row*3+(2-col);}
-function expectedInput(pattern,modId){
-  if(modId==='reverse')return pattern.slice().reverse();
-  if(modId==='mirror')return pattern.map(mirrorPad);
-  return pattern;
+function rotatePad(i){var row=Math.floor(i/3),col=i%3;return col*3+(2-row);}
+// Spatial twists apply first, then Reverse changes the order.
+function expectedInput(pattern,mods){
+  if(typeof mods==='string')mods=[{id:mods}];
+  var out=pattern.slice();
+  if(hasMod(mods,'mirror'))out=out.map(mirrorPad);
+  if(hasMod(mods,'rotate'))out=out.map(rotatePad);
+  if(hasMod(mods,'reverse'))out.reverse();
+  return out;
 }
-function timing(round,modId){
-  var base=Math.max(260,640-round*28),flash=base,gap=Math.round(base*0.45);
-  if(modId==='surge'){flash=Math.round(flash*0.6);gap=Math.round(gap*0.6);}
-  if(modId==='ghost')flash=Math.min(flash,190);
+function decoyCount(round){return stageIndex(round)<1?0:Math.min(4,1+Math.floor((round-4)/2));}
+// What lights up while you watch: the real pattern with decoys slotted in between. Same every replay of a round.
+function buildShow(pattern,round,seed){
+  var rand=mulberry32((seed^Math.imul(round,0x9e3779b1))>>>0),show=pattern.map(function(p){return {pad:p,decoy:false};});
+  for(var d=decoyCount(round);d>0;d--){
+    var at=1+Math.floor(rand()*show.length),pad=Math.floor(rand()*9);
+    show.splice(at,0,{pad:pad,decoy:true});
+  }
+  return show;
+}
+function timing(round,mods){
+  if(typeof mods==='string')mods=[{id:mods}];
+  var base=Math.max(240,640-round*28),flash=base,gap=Math.round(base*0.45);
+  if(hasMod(mods,'surge')){flash=Math.round(flash*0.6);gap=Math.round(gap*0.6);}
+  if(hasMod(mods,'ghost'))flash=Math.min(flash,190);
   return {flash:flash,gap:gap};
 }
+// Milliseconds allowed for each tap in the Countdown stage, or 0 when there is no timer.
+function tapLimit(round){return stageIndex(round)<3?0:Math.max(900,2200-(round-10)*130);}
 function tapPoints(combo){return 10+Math.min(combo,20);}
-function roundBonus(round,lives){return round*25+lives*15;}
+function roundBonus(round,lives){return round*25+lives*15+stageIndex(round)*20;}
+function modsName(mods){return mods.map(function(m){return m.name;}).join(' + ');}
 function shareText(o){
   var rows=[];for(var i=0;i<o.history.length;i+=8)rows.push(o.history.slice(i,i+8).join(''));
-  return ['PULSE '+o.dateKey+' '+o.mod.name,'Score '+o.score+' · '+o.rounds+' rounds'].concat(rows).join('\n');
+  var stage=STAGES[stageIndex(o.rounds+1)];
+  return ['PULSE '+o.dateKey+' '+o.mod.name,'Score '+o.score+' · '+o.rounds+' rounds · reached '+stage.name].concat(rows).join('\n');
 }
 /*END*/
 
@@ -341,7 +404,7 @@ function statusVerdict(res){
 
 (function(){
   var $=function(id){return document.getElementById(id)};
-  var dateKey=ukDate(), todayMod=dailyModifier(dateKey), todaySeq=buildSequence(dailySeed(dateKey));
+  var dateKey=ukDate(), todayMod=dailyModifier(dateKey), todaySeed=dailySeed(dateKey), todaySeq=buildSequence(todaySeed);
   var configured=!!PLUS.enabled;
   var THEMES=[{id:'neon',name:'Neon'},{id:'sunset',name:'Sunset'},{id:'ocean',name:'Ocean'},{id:'mono',name:'Mono'}];
   var GRACE=7*24*60*60*1000; // how long PULSE+ keeps working on a device with no connection to the status service
@@ -358,8 +421,8 @@ function statusVerdict(res){
 
   var gridEl=$('grid'),statusEl=$('status'),startBtn=$('start'),roundEl=$('roundlabel'),scoreEl=$('score'),
       comboEl=$('combo'),livesEl=$('lives'),resultEl=$('result'),pads=[];
-  var mode='daily', cur={mode:'daily',key:dateKey,mod:todayMod,seq:todaySeq};
-  var round=1,lives=MAX_LIVES,score=0,combo=0,history=[],idx=0,accepting=false,runId=0;
+  var mode='daily', cur=null;
+  var round=1,lives=MAX_LIVES,score=0,combo=0,history=[],idx=0,accepting=false,runId=0,shownStage=-1,tapTimer=0;
 
   // ---- stats ----
   function renderStats(){
@@ -381,11 +444,12 @@ function statusVerdict(res){
     if(keep)sel.value=keep;
   }
   function refreshHeader(){
-    var label,desc;
-    if(mode==='daily'){label='Today · '+todayMod.name;desc=todayMod.desc;}
-    else if(mode==='archive'){var k=$('archiveSel').value,m=dailyModifier(k);label=k+' · '+m.name;desc=m.desc;}
+    var label,desc,m=null;
+    if(mode==='daily'){m=todayMod;label='Today · '+m.name;desc=m.desc;}
+    else if(mode==='archive'){var k=$('archiveSel').value;m=dailyModifier(k);label=k+' · '+m.name;desc=m.desc;}
     else{label='Practice · random pattern';desc='A random pattern and twist every time. Nothing is saved.';}
-    $('twistlabel').textContent=label;$('twistdesc').textContent=desc;
+    $('twistlabel').textContent=label;$('twistdesc').textContent=desc+' It gets harder every few rounds.';
+    gridEl.classList.toggle('blackout',!!m&&m.id==='blackout');
     startBtn.textContent=(mode==='daily'&&stats.results[dateKey])?'Play again':'Start';
   }
   function renderMode(){
@@ -396,13 +460,13 @@ function statusVerdict(res){
     for(var i=0;i<tags.length;i++)tags[i].hidden=isPro;
   }
   function resetRunUI(){
-    round=1;lives=MAX_LIVES;score=0;combo=0;history=[];
+    round=1;lives=MAX_LIVES;score=0;combo=0;history=[];stopTimer();gridEl.classList.remove('blackout');statusEl.classList.remove('alert');
     resultEl.hidden=true;startBtn.hidden=false;statusEl.textContent='Press start, then watch closely.';
     renderHud();
   }
   function setMode(m){
     if(m!=='daily'&&!isPro){openPlus();return;}
-    runId++;accepting=false;mode=m;
+    runId++;accepting=false;mode=m;stopTimer();
     resetRunUI();renderMode();refreshHeader();
   }
 
@@ -431,7 +495,7 @@ function statusVerdict(res){
   function openPlus(){renderPlus();$('plus').hidden=false;$('plus').scrollIntoView({behavior:'smooth',block:'nearest'});}
   function setPro(on){
     isPro=!!(on&&configured);
-    if(!isPro&&mode!=='daily'){runId++;accepting=false;mode='daily';resetRunUI();}
+    if(!isPro&&mode!=='daily'){runId++;accepting=false;stopTimer();mode='daily';resetRunUI();}
     renderMode();applyTheme();renderPlus();refreshHeader();
   }
 
@@ -507,56 +571,89 @@ function statusVerdict(res){
 
   var wait=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
   function renderLives(){livesEl.innerHTML='';for(var i=0;i<MAX_LIVES;i++){var d=document.createElement('span');d.className='life'+(i>=lives?' lost':'');livesEl.appendChild(d);}}
-  function renderHud(){scoreEl.textContent=score;roundEl.textContent='Round '+round;comboEl.textContent=combo>=3?'x'+combo+' combo':'';renderLives();}
+  function renderStageBar(){
+    var bar=$('stagebar'),st=stageIndex(round);bar.innerHTML='';
+    for(var i=0;i<STAGES.length;i++){var d=document.createElement('span');if(i<=st)d.className='on';bar.appendChild(d);}
+  }
+  function renderHud(){scoreEl.textContent=score;roundEl.textContent='Round '+round+' · '+STAGES[stageIndex(round)].name;comboEl.textContent=combo>=3?'x'+combo+' combo':'';renderLives();renderStageBar();}
   function buzz(p){try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}}
-  function flash(i,ms){pads[i].classList.add('on');return wait(ms).then(function(){pads[i].classList.remove('on')})}
+  function flash(i,ms,decoy){var c=decoy?'decoy':'on';pads[i].classList.add(c);return wait(ms).then(function(){pads[i].classList.remove(c)})}
+  function curMods(){return activeMods(round,cur.mod,cur.second);}
+  function showTwist(){
+    var mods=curMods();
+    $('twistlabel').textContent=(cur.mode==='practice'?'Practice':cur.mode==='archive'?cur.key:'Today')+' · '+modsName(mods);
+    $('twistdesc').textContent=mods.map(function(m){return m.desc;}).join(' ');
+    gridEl.classList.toggle('blackout',hasMod(mods,'blackout'));
+  }
+
+  // ---- countdown timer (final stage) ----
+  function stopTimer(){clearTimeout(tapTimer);tapTimer=0;var t=$('timer');t.classList.remove('on','low');}
+  function startTimer(){
+    stopTimer();var ms=tapLimit(round);if(!ms)return;
+    var t=$('timer'),fill=$('timerFill'),my=runId;
+    fill.style.transition='none';fill.style.width='100%';void fill.offsetWidth;
+    fill.style.transition='width '+ms+'ms linear';fill.style.width='0%';t.classList.add('on');
+    var lowAt=setTimeout(function(){if(tapTimer)t.classList.add('low');},ms*0.65);
+    tapTimer=setTimeout(function(){clearTimeout(lowAt);if(my===runId&&accepting)miss('Too slow!');},ms);
+  }
 
   async function showPattern(my){
-    accepting=false;idx=0;renderHud();statusEl.textContent='Watch…';
+    accepting=false;idx=0;stopTimer();renderHud();
+    var st=stageIndex(round);
+    if(st!==shownStage){
+      var first=shownStage<0;shownStage=st;showTwist();
+      if(!first&&STAGES[st].note){
+        statusEl.classList.add('alert');
+        statusEl.textContent='Stage '+(st+1)+': '+STAGES[st].name+'. '+(st===2?'Now '+modsName(curMods())+'.':STAGES[st].note);
+        buzz([20,60,20]);await wait(1900);if(my!==runId)return;
+      }
+    }
+    statusEl.classList.remove('alert');statusEl.textContent='Watch…';
     await wait(650);if(my!==runId)return;
-    var pat=cur.seq.slice(0,round+2),t=timing(round,cur.mod.id);
-    for(var k=0;k<pat.length;k++){
+    var show=buildShow(cur.seq.slice(0,round+2),round,cur.seed),t=timing(round,curMods());
+    for(var k=0;k<show.length;k++){
       if(my!==runId)return;
-      await flash(pat[k],t.flash);
+      await flash(show[k].pad,t.flash,show[k].decoy);
       if(my!==runId)return;
       await wait(t.gap);
     }
     if(my!==runId)return;
-    accepting=true;statusEl.textContent='Your turn';
+    accepting=true;statusEl.textContent=tapLimit(round)?'Your turn. Be quick!':'Your turn';startTimer();
   }
 
   function prepareRun(){
-    if(mode==='daily')cur={mode:'daily',key:dateKey,mod:todayMod,seq:todaySeq};
-    else if(mode==='archive'){var k=$('archiveSel').value||prevKey(dateKey);cur={mode:'archive',key:k,mod:dailyModifier(k),seq:buildSequence(dailySeed(k))};}
-    else{var m=MODS[Math.floor(Math.random()*MODS.length)];cur={mode:'practice',key:'practice',mod:m,seq:buildSequence(Math.floor(Math.random()*1e9))};}
-    $('twistlabel').textContent=(cur.mode==='practice'?'Practice':cur.mode==='archive'?cur.key:'Today')+' · '+cur.mod.name;
-    $('twistdesc').textContent=cur.mod.desc;
+    if(mode==='daily')cur={mode:'daily',key:dateKey,mod:todayMod,seed:todaySeed,seq:todaySeq};
+    else if(mode==='archive'){var k=$('archiveSel').value||prevKey(dateKey),sd=dailySeed(k);cur={mode:'archive',key:k,mod:dailyModifier(k),seed:sd,seq:buildSequence(sd)};}
+    else{var m=MODS[Math.floor(Math.random()*MODS.length)],rs=Math.floor(Math.random()*1e9);cur={mode:'practice',key:'practice',mod:m,seed:rs,seq:buildSequence(rs)};}
+    cur.second=secondModifier(cur.seed,cur.mod);
   }
 
   function begin(){
     if(mode!=='daily'&&!isPro){setMode('daily');return;}
-    prepareRun();runId++;round=1;lives=MAX_LIVES;score=0;combo=0;history=[];
+    prepareRun();runId++;round=1;lives=MAX_LIVES;score=0;combo=0;history=[];shownStage=-1;
     resultEl.hidden=true;startBtn.hidden=true;
     showPattern(runId);
     if(window.innerWidth<=820)$('play').scrollIntoView({behavior:'smooth',block:'start'});
   }
 
+  function miss(msg){
+    accepting=false;stopTimer();buzz([30,40,30]);history.push('🟥');combo=0;lives--;renderHud();
+    if(lives<=0){statusEl.textContent='Game over';var my2=runId;setTimeout(function(){if(my2===runId)finish()},700);}
+    else{statusEl.textContent=(msg||'Missed.')+' Watch again.';var my3=runId;setTimeout(function(){if(my3===runId)showPattern(my3)},900);}
+  }
+
   function onTap(i){
     if(!accepting)return;
     pads[i].classList.add('on');setTimeout(function(){pads[i].classList.remove('on')},110);
-    var expected=expectedInput(cur.seq.slice(0,round+2),cur.mod.id);
+    var expected=expectedInput(cur.seq.slice(0,round+2),curMods());
     if(i===expected[idx]){
       combo++;score+=tapPoints(combo);idx++;buzz(10);
       if(idx===expected.length){
-        accepting=false;score+=roundBonus(round,lives);history.push('🟩');
+        accepting=false;stopTimer();score+=roundBonus(round,lives);history.push('🟩');
         round++;statusEl.textContent='Nice!';renderHud();
         var my=runId;setTimeout(function(){if(my===runId)showPattern(my)},600);
-      }else renderHud();
-    }else{
-      accepting=false;buzz([30,40,30]);history.push('🟥');combo=0;lives--;renderHud();
-      if(lives<=0){statusEl.textContent='Game over';var my2=runId;setTimeout(function(){if(my2===runId)finish()},700);}
-      else{statusEl.textContent='Missed. Watch again.';var my3=runId;setTimeout(function(){if(my3===runId)showPattern(my3)},900);}
-    }
+      }else{renderHud();startTimer();}
+    }else miss();
   }
 
   function finish(){
@@ -571,12 +668,12 @@ function statusVerdict(res){
       if(!a||score>a.score)stats.archive[cur.key]={score:score,rounds:rounds};
       fillArchive();
     }
-    saveStats();renderStats();refreshHeader();
+    stopTimer();saveStats();renderStats();refreshHeader();
     var label=cur.mode==='daily'?cur.key:cur.mode==='archive'?cur.key+' archive':'practice';
     var text=shareText({dateKey:label,mod:cur.mod,score:score,rounds:rounds,history:history});
     var url='';try{if(/^https?:/.test(location.protocol))url='\n'+location.origin+location.pathname;}catch(e){}
     $('rScore').textContent=score;
-    $('rSub').textContent=rounds+(rounds===1?' round':' rounds')+' cleared · '+cur.mod.name;
+    $('rSub').textContent=rounds+(rounds===1?' round':' rounds')+' cleared · reached '+STAGES[stageIndex(round)].name+' · '+cur.mod.name;
     $('rEmoji').textContent=history.join('')||'-';
     $('rText').value=text+url;
     $('share').textContent='Share result';
