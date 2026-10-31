@@ -2,7 +2,7 @@
 
 # PULSE+ on Cloudflare Pages (free)
 
-This version runs the three Stripe programs on Cloudflare Pages, which is free for commercial sites.
+This version runs the small Stripe programs on Cloudflare Pages, which is free for commercial sites.
 
 ## 1. Add these files to the GitHub repository you already made (pulse-site)
 1. Unzip pulse-cloudflare.zip.
@@ -16,17 +16,22 @@ This version runs the three Stripe programs on Cloudflare Pages, which is free f
 2. Workers & Pages > Create application > Pages > Import an existing Git repository. Connect GitHub and choose pulse-site.
 3. Production branch: main. Build command: exit 0. Build output directory: public. Press Save and Deploy.
 
-## 3. Add your three Stripe values
-Project > Settings > Variables and Secrets (or Environment variables) > Production > Add:
-- STRIPE_SECRET_KEY : your sk_test_ key (choose the Secret type)
-- STRIPE_PRICE_MONTHLY : the monthly price_ ID
-- STRIPE_PRICE_YEARLY : the yearly price_ ID
-Then go to Deployments and redeploy (Retry deployment, or push any small change).
+## 3. Stripe: three things only you can do
+You don't need to create any products or prices. They are set in functions/api/checkout.js (monthly £1.99, yearly £11.99
+with a 7-day trial, forever £19.99, 3 Streak Savers £0.99, tips £0.99 / £2.99 / £4.99), and Stripe makes them at checkout.
+1. Activate your Stripe account: dashboard.stripe.com > Activate payments. Add your ID and the bank account for payouts.
+2. Settings > Billing > Customer portal: switch it on, allow customers to cancel subscriptions, and press Save.
+3. Developers > API keys: copy the Secret key (sk_test_ while testing, sk_live_ when you go live). Never paste it in chat or on GitHub.
+   In Cloudflare: Project > Settings > Variables and Secrets > Production > Add STRIPE_SECRET_KEY, type Secret, paste the key.
+   Then go to Deployments and redeploy (Retry deployment, or push any small change).
+The old STRIPE_PRICE_MONTHLY and STRIPE_PRICE_YEARLY variables are no longer used, so you can delete them.
 
 ## 4. Turn PULSE+ on and test
 1. On GitHub edit public/index.html and change enabled:false to enabled:true. Commit. Cloudflare redeploys by itself.
 2. Open your pages.dev address, press PULSE+ > Yearly, pay with card 4242 4242 4242 4242, any future date, any 3-digit code.
+   You should come back with PULSE+ unlocked. Try Forever, a Streak Saver pack and a tip the same way.
 3. Check this address shows "POST only": your-address.pages.dev/api/checkout
+4. When it all works, swap STRIPE_SECRET_KEY for your sk_live_ key and redeploy. Do one real purchase yourself, then refund it.
 
 ## Visitor counter (optional, later)
 The counter box stays hidden until you give the project a KV store called COUNTER (Workers & Pages > KV > Create, then

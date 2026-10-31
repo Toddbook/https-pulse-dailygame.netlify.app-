@@ -53,8 +53,11 @@ h1 span{background:linear-gradient(90deg,var(--p3),var(--p4),var(--p5));-webkit-
 .mode[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
 .tag{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:var(--gold);color:#1B1530;font:700 10px var(--mono);letter-spacing:.06em;vertical-align:middle}
 .archivebar{margin:0 0 14px}
+.practicebar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
+.practicebar label{display:block}
+.saverline{margin:12px 0 0}
 .small{font-size:13px;color:var(--muted);margin:0 0 6px}
-select,input[type=text]{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:500 14px var(--mono)}
+select,input[type=text],input[type=date]{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:500 14px var(--mono)}
 .demohead{display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
 .demohead span:last-child{white-space:nowrap}
 .scorebar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
@@ -114,7 +117,7 @@ h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,3.6vw,38px);l
 .loop{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px}
 .loop h3{margin:0 0 6px;font-size:18px}
 .loop p{margin:0;color:var(--muted)}
-.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;align-items:stretch}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;align-items:stretch}
 .plan{background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:14px;min-width:0}
 .plan.best{border-color:var(--gold)}
 .plan .btn{margin-top:auto}
@@ -123,6 +126,13 @@ h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,3.6vw,38px);l
 .price small{font-family:var(--body);font-size:15px;font-weight:400;color:var(--muted)}
 .plan ul{margin:0;padding-left:20px;display:grid;gap:8px}
 .plan li::marker{color:var(--gold)}
+.price .was{font-size:15px;font-weight:400;color:var(--muted);display:block;font-family:var(--body)}
+.extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:18px}
+.extra{background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:22px 28px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.extra h3{font-family:var(--display);font-size:20px;margin:0}
+.extra p{margin:0;color:var(--muted)}
+.extra .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto}
+.extra .btn{padding:12px 18px;font-size:15px}
 .faq details{border-bottom:1px solid var(--line);padding:18px 0}
 .faq summary{cursor:pointer;font-weight:700;font-size:17px}
 .faq p{color:var(--muted);margin:10px 0 0;max-width:46em}
@@ -153,6 +163,7 @@ footer{border-top:1px solid var(--line);padding-block:36px 48px;color:var(--mute
         <div class="stat"><b id="stBest">0</b><span>Best score</span></div>
         <div class="stat"><b id="stToday">-</b><span>Today</span></div>
       </div>
+      <p class="small saverline" id="saverLine" role="status" hidden></p>
       <div class="visitor-count" id="visitorBox" aria-live="polite" hidden>
         <span class="visitor-dot" aria-hidden="true"></span>
         <span>All-time visits</span>
@@ -167,8 +178,14 @@ footer{border-top:1px solid var(--line);padding-block:36px 48px;color:var(--mute
         <button class="mode" id="modePractice" type="button" aria-pressed="false">Practice<span class="tag">PULSE+</span></button>
       </div>
       <div class="archivebar" id="archiveBar" hidden>
-        <label class="small" for="archiveSel">Pick a day from the last 30</label>
-        <select id="archiveSel"></select>
+        <label class="small" for="archiveSel">Pick any past day</label>
+        <input type="date" id="archiveSel">
+      </div>
+      <div class="practicebar" id="practiceBar" hidden>
+        <label><span class="small">Twist</span>
+          <select id="practiceTwist"><option value="random">Random</option></select></label>
+        <label><span class="small">Start at stage</span>
+          <select id="practiceStage"></select></label>
       </div>
       <div class="demohead"><span id="twistlabel">Today</span><span id="roundlabel">Round 1</span></div>
       <div class="scorebar">
@@ -186,19 +203,20 @@ footer{border-top:1px solid var(--line);padding-block:36px 48px;color:var(--mute
       <div class="plus" id="plus" hidden>
         <div class="plushead"><h3>PULSE+</h3><button class="x" id="plusClose" type="button" aria-label="Close PULSE+">×</button></div>
         <div id="plusLocked">
-          <p>Play any of the last 30 days, practise with unlimited random patterns, and change the pad colours.</p>
+          <p>Play every past daily, practise any twist or stage, change the pad colours, and get a free Streak Saver every week.</p>
           <div class="row" id="buyRow" hidden>
-            <a class="btn" id="buyYearly" href="#">Yearly £24.99 · 7-day free trial</a>
-            <a class="btn ghost" id="buyMonthly" href="#">Monthly £3.99</a>
+            <a class="btn" id="buyYearly" href="#">Yearly £11.99 · 7-day free trial</a>
+            <a class="btn ghost" id="buyMonthly" href="#">Monthly £1.99</a>
+            <a class="btn ghost" id="buyForever" href="#">Forever £19.99 · pay once</a>
           </div>
           <p class="small" id="soonNote">PULSE+ goes on sale soon. <a href="https://tally.so/r/VLRkeE" target="_blank" rel="noopener">Join the list</a> and we'll tell you the day.</p>
           <div id="keyGroup" hidden>
             <p class="msg" id="keyMsg" role="status"></p>
-            <p class="small">Subscriptions renew automatically. Cancel any time with the Manage subscription button once you are subscribed. Payments are handled securely by Stripe.</p>
+            <p class="small">Monthly and yearly renew automatically. Cancel any time with the Manage subscription button once you are subscribed. Forever is a single payment that never renews. Payments are handled securely by Stripe.</p>
           </div>
         </div>
         <div id="plusOn" hidden>
-          <p>PULSE+ is active on this device. Thank you.</p>
+          <p id="plusOnText">PULSE+ is active on this device. Thank you.</p>
           <p class="small">Pad colours</p>
           <div class="themes" id="themes"></div>
           <div class="row">
@@ -271,17 +289,41 @@ footer{border-top:1px solid var(--line);padding-block:36px 48px;color:var(--mute
       </div>
       <div class="plan best">
         <div class="tier" id="tierY">Planned: PULSE+ yearly</div>
-        <div class="price">£24.99 <small>/ year</small></div>
-        <ul><li>Play any of the last 30 days</li><li>Unlimited practice with random patterns</li><li>Pad colour themes</li><li id="trialLi" hidden>7-day free trial</li></ul>
-        <a class="btn" id="planBuyY" href="#" target="_blank" rel="noopener" hidden>Get PULSE+ yearly</a>
+        <div class="price">£11.99 <small>/ year</small><span class="was">About £1 a month</span></div>
+        <ul><li>Play every past daily, not just today's</li><li>Practise any twist, from any stage</li><li>Pad colour themes</li><li>A free Streak Saver every week</li><li id="trialLi" hidden>7-day free trial</li></ul>
+        <a class="btn" id="planBuyY" href="#" hidden>Get PULSE+ yearly</a>
       </div>
       <div class="plan">
         <div class="tier" id="tierM">Planned: PULSE+ monthly</div>
-        <div class="price">£3.99 <small>/ month</small></div>
+        <div class="price">£1.99 <small>/ month</small></div>
         <ul><li>Everything in yearly</li><li>Cancel anytime</li></ul>
-        <a class="btn ghost" id="planBuyM" href="#" target="_blank" rel="noopener" hidden>Get PULSE+ monthly</a>
+        <a class="btn ghost" id="planBuyM" href="#" hidden>Get PULSE+ monthly</a>
+      </div>
+      <div class="plan">
+        <div class="tier" id="tierF">Planned: PULSE+ forever</div>
+        <div class="price">£19.99 <small>once</small></div>
+        <ul><li>Everything in yearly</li><li>Pay once, keep it for good</li><li>No subscription to cancel</li></ul>
+        <a class="btn ghost" id="planBuyF" href="#" hidden>Get PULSE+ forever</a>
       </div>
     </div>
+    <div class="extras">
+      <div class="extra">
+        <h3>Streak Saver · 3 for £0.99</h3>
+        <p>Missed a day? A Streak Saver is used automatically for each missed day, so your streak carries on. No subscription needed.</p>
+        <div class="row"><a class="btn ghost" id="buySavers" href="#" hidden>Get 3 Streak Savers</a></div>
+      </div>
+      <div class="extra">
+        <h3>Tip jar</h3>
+        <p>Enjoying PULSE? A one-off tip keeps the daily game free for everyone. You don't get anything extra, just our thanks.</p>
+        <div class="row" id="tipRow" hidden>
+          <a class="btn ghost" href="#" data-tip="tip_small">£0.99</a>
+          <a class="btn ghost" href="#" data-tip="tip_medium">£2.99</a>
+          <a class="btn ghost" href="#" data-tip="tip_large">£4.99</a>
+        </div>
+        <p class="small" id="tipPrices">£0.99, £2.99 or £4.99, when PULSE+ goes on sale.</p>
+      </div>
+    </div>
+    <p class="msg" id="extrasMsg" role="status"></p>
   </section>
 
   <section>
@@ -295,9 +337,11 @@ footer{border-top:1px solid var(--line);padding-block:36px 48px;color:var(--mute
     <details><summary>Is the pattern really the same for everyone?</summary><p>Yes. Each day's pattern and twist come from the UK date, so everyone playing on the same UK day gets the same sequence. It changes at midnight UK time.</p></details>
     <details><summary>Do I need to download anything?</summary><p>No. PULSE runs in your browser on your phone or computer. Your streak and best score are saved on the device you play on, so clearing your browser data or switching device starts them again. PULSE+ can be unlocked on another device with the link from the PULSE+ box.</p></details>
     <details><summary>How long does a game take?</summary><p>Most runs last one to three minutes. Strong players who clear many rounds will take longer.</p></details>
-    <details><summary>What does PULSE+ include?</summary><p>You can play any of the last 30 days, practise with unlimited random patterns and change the pad colours. The daily game stays free.</p></details>
-    <details><summary>How do I use PULSE+ on another phone or computer?</summary><p>Open the PULSE+ box on the device where you subscribed and press Copy link for another device. Open that link on the other device and PULSE+ unlocks there too. Keep the link private, because anyone who has it can unlock PULSE+.</p></details>
-    <details><summary>How do I cancel PULSE+?</summary><p>Use the Manage subscription button in the PULSE+ box. You keep PULSE+ until the end of the period you have paid for.</p></details>
+    <details><summary>What does PULSE+ include?</summary><p>You can play every past daily, practise any twist starting from any stage, change the pad colours, and you get one free Streak Saver every week. The daily game stays free.</p></details>
+    <details><summary>Which PULSE+ option should I pick?</summary><p>Yearly is the best value at £11.99, about £1 a month, and starts with a 7-day free trial. Monthly is £1.99 if you'd rather try it for a while. Forever is £19.99 once, for anyone who doesn't want a subscription at all.</p></details>
+    <details><summary>How do Streak Savers work?</summary><p>If you miss a day, a Streak Saver is used the next time you open PULSE so your streak carries on. One saver covers one missed day. You can buy 3 for £0.99, and PULSE+ members get one free each week. Savers are kept on the device you play on.</p></details>
+    <details><summary>How do I use PULSE+ on another phone or computer?</summary><p>Open the PULSE+ box on the device where you bought PULSE+ and press Copy link for another device. Open that link on the other device and PULSE+ unlocks there too. Keep the link private, because anyone who has it can unlock PULSE+.</p></details>
+    <details><summary>How do I cancel PULSE+?</summary><p>Use the Manage subscription button in the PULSE+ box. You keep PULSE+ until the end of the period you have paid for. PULSE+ Forever is a single payment, so there is nothing to cancel.</p></details>
     <details><summary>Will there be a phone app?</summary><p>Apps for iOS and Android are planned. Join the list and we'll tell you when they launch, and how PULSE+ will work in them.</p></details>
     <details><summary>Can I replay today's pattern?</summary><p>Yes. Try again as often as you like. Your best score for the day is the one that counts.</p></details>
   </section>
@@ -335,6 +379,18 @@ function mulberry32(seed){var a=seed>>>0;return function(){a=(a+0x6d2b79f5)>>>0;
 function ukDate(){
   try{return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London'}).format(new Date());}
   catch(e){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+}
+function keyTime(key){var p=key.split('-').map(Number);return Date.UTC(p[0],p[1]-1,p[2]);}
+function daysBetween(a,b){return Math.round((keyTime(b)-keyTime(a))/864e5);}
+// The Monday that starts the week of a date, used to hand PULSE+ members one free Streak Saver a week.
+function weekKey(key){var d=new Date(keyTime(key));d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10);}
+// Uses Streak Savers to cover missed days. Returns how many were used (0 if the streak is fine or can't be saved).
+function saverCover(stats,today){
+  if(!stats.streak||!stats.lastPlayed||stats.lastPlayed>=today)return 0;
+  var missed=daysBetween(stats.lastPlayed,today)-1;
+  if(missed<1||missed>(stats.savers||0))return 0;
+  stats.savers-=missed;stats.lastPlayed=prevKey(today);
+  return missed;
 }
 function prevKey(key){var p=key.split('-').map(Number);return new Date(Date.UTC(p[0],p[1]-1,p[2]-1)).toISOString().slice(0,10);}
 function dailySeed(k){return hashString('pulse:'+k);}
@@ -396,8 +452,8 @@ function shareText(o){
 // Decides whether the answer from our own status function unlocks PULSE+.
 function statusVerdict(res){
   if(!res||typeof res!=='object')return {ok:false,reason:'network'};
-  if(res.active===true)return {ok:true};
-  if(res.active===false)return {ok:false,reason:'ended'};
+  if(res.active===true)return {ok:true,plan:res.plan};
+  if(res.active===false)return {ok:false,reason:'ended',plan:res.plan};
   return {ok:false,reason:'invalid'};
 }
 /*END*/
@@ -407,6 +463,7 @@ function statusVerdict(res){
   var dateKey=ukDate(), todayMod=dailyModifier(dateKey), todaySeed=dailySeed(dateKey), todaySeq=buildSequence(todaySeed);
   var configured=!!PLUS.enabled;
   var THEMES=[{id:'neon',name:'Neon'},{id:'sunset',name:'Sunset'},{id:'ocean',name:'Ocean'},{id:'mono',name:'Mono'}];
+  var ARCHIVE_FROM='2026-01-01'; // the earliest day PULSE+ members can pick in the archive
   var GRACE=7*24*60*60*1000; // how long PULSE+ keeps working on a device with no connection to the status service
 
   // Saved on this device only
@@ -414,7 +471,9 @@ function statusVerdict(res){
   function writeJSON(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
   var stats=readJSON('pulse:web:v1',{streak:0,best:0,lastPlayed:null,results:{},archive:{}});
   if(!stats.archive)stats.archive={};
-  var plus=readJSON('pulse:plus:v1',{sid:'',lastOk:0,theme:'neon'});
+  if(!(stats.savers>=0))stats.savers=0;
+  if(!Array.isArray(stats.redeemed))stats.redeemed=[];
+  var plus=readJSON('pulse:plus:v1',{sid:'',lastOk:0,theme:'neon',plan:''});
   function saveStats(){writeJSON('pulse:web:v1',stats);}
   function savePlus(){writeJSON('pulse:plus:v1',plus);}
   var isPro=!!(configured&&plus.sid&&Date.now()-plus.lastOk<GRACE);
@@ -429,25 +488,56 @@ function statusVerdict(res){
     $('stStreak').textContent=(stats.lastPlayed===dateKey||stats.lastPlayed===prevKey(dateKey))?stats.streak:0;
     $('stBest').textContent=stats.best;
     var t=stats.results[dateKey];$('stToday').textContent=t?t.score:'-';
+    renderSaver();
+  }
+
+  // ---- Streak Savers ----
+  var saverNote='';
+  function renderSaver(){
+    var n=stats.savers,line=$('saverLine'),txt=saverNote;
+    if(n>0)txt+=(txt?' ':'')+n+' Streak Saver'+(n===1?'':'s')+' ready. One is used for each day you miss.';
+    line.textContent=txt;line.hidden=!txt;
+  }
+  function grantWeeklySaver(){
+    var wk=weekKey(dateKey);
+    if(isPro&&stats.saverWeek!==wk){stats.savers++;stats.saverWeek=wk;saveStats();}
+  }
+  function useSavers(){
+    var used=saverCover(stats,dateKey);
+    if(used){saveStats();saverNote='Streak Saver used for '+(used===1?'the day':used+' days')+' you missed. Your streak is safe.';}
   }
 
   // ---- modes ----
   function fillArchive(){
-    var sel=$('archiveSel'),keep=sel.value,k=dateKey;
-    sel.innerHTML='';
-    for(var i=1;i<=30;i++){
-      k=prevKey(k);
-      var o=document.createElement('option'),r=stats.archive[k];
-      o.value=k;o.textContent=k+' · '+dailyModifier(k).name+(r?' · '+r.score:'');
-      sel.appendChild(o);
-    }
-    if(keep)sel.value=keep;
+    var sel=$('archiveSel');sel.min=ARCHIVE_FROM;sel.max=prevKey(dateKey);
+    if(!sel.value)sel.value=sel.max;
+  }
+  // The chosen archive day, kept between the first archive day and yesterday.
+  function archiveKey(){
+    var sel=$('archiveSel'),k=sel.value;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(k)||k>sel.max)k=sel.max;else if(k<sel.min)k=sel.min;
+    return k;
+  }
+  function fillPractice(){
+    var tw=$('practiceTwist'),st=$('practiceStage');
+    MODS.forEach(function(m){var o=document.createElement('option');o.value=m.id;o.textContent=m.name;tw.appendChild(o);});
+    STAGES.forEach(function(g,i){var o=document.createElement('option');o.value=String(i);o.textContent=(i+1)+' · '+g.name;st.appendChild(o);});
+  }
+  function practiceChoice(){
+    var id=$('practiceTwist').value,mod=null;
+    for(var i=0;i<MODS.length;i++)if(MODS[i].id===id)mod=MODS[i];
+    var st=Math.max(0,Math.min(STAGES.length-1,parseInt($('practiceStage').value,10)||0));
+    return {mod:mod,stage:st};
   }
   function refreshHeader(){
     var label,desc,m=null;
     if(mode==='daily'){m=todayMod;label='Today · '+m.name;desc=m.desc;}
-    else if(mode==='archive'){var k=$('archiveSel').value;m=dailyModifier(k);label=k+' · '+m.name;desc=m.desc;}
-    else{label='Practice · random pattern';desc='A random pattern and twist every time. Nothing is saved.';}
+    else if(mode==='archive'){var k=archiveKey(),r=stats.archive[k];m=dailyModifier(k);label=k+' · '+m.name+(r?' · best '+r.score:'');desc=m.desc;}
+    else{
+      var pc=practiceChoice();m=pc.mod;
+      label='Practice · '+(m?m.name:'random twist')+(pc.stage?' · from '+STAGES[pc.stage].name:'');
+      desc=(m?m.desc+' ':'')+'A random pattern every time. Nothing is saved.';
+    }
     $('twistlabel').textContent=label;$('twistdesc').textContent=desc+' It gets harder every few rounds.';
     gridEl.classList.toggle('blackout',!!m&&m.id==='blackout');
     startBtn.textContent=(mode==='daily'&&stats.results[dateKey])?'Play again':'Start';
@@ -455,7 +545,7 @@ function statusVerdict(res){
   function renderMode(){
     var ids={daily:'modeDaily',archive:'modeArchive',practice:'modePractice'};
     Object.keys(ids).forEach(function(m){$(ids[m]).setAttribute('aria-pressed',String(mode===m));});
-    $('archiveBar').hidden=(mode!=='archive');
+    $('archiveBar').hidden=(mode!=='archive');$('practiceBar').hidden=(mode!=='practice');
     var tags=document.querySelectorAll('.mode .tag');
     for(var i=0;i<tags.length;i++)tags[i].hidden=isPro;
   }
@@ -489,12 +579,15 @@ function statusVerdict(res){
   function renderPlus(){
     $('plusLocked').hidden=isPro;$('plusOn').hidden=!isPro;
     $('buyRow').hidden=!configured;$('soonNote').hidden=configured;$('keyGroup').hidden=!configured;
-    $('manage').hidden=!(configured&&isPro);
+    var forever=plus.plan==='forever';
+    $('manage').hidden=!(configured&&isPro)||forever;
+    $('plusOnText').textContent=forever?'PULSE+ Forever is active on this device. Thank you.':'PULSE+ is active on this device. Thank you.';
     renderThemes();
   }
   function openPlus(){renderPlus();$('plus').hidden=false;$('plus').scrollIntoView({behavior:'smooth',block:'nearest'});}
   function setPro(on){
     isPro=!!(on&&configured);
+    if(isPro){grantWeeklySaver();renderSaver();}
     if(!isPro&&mode!=='daily'){runId++;accepting=false;stopTimer();mode='daily';resetRunUI();}
     renderMode();applyTheme();renderPlus();refreshHeader();
   }
@@ -506,18 +599,18 @@ function statusVerdict(res){
   }
   function friendly(v){
     if(v.reason==='network')return 'Could not reach the server. Check your connection and try again.';
-    if(v.reason==='ended')return 'That subscription has ended. Subscribe again to unlock PULSE+.';
+    if(v.reason==='ended')return v.plan&&v.plan.indexOf('tip')===0||v.plan==='savers'?'That link is for a tip or Streak Savers, not PULSE+.':'That PULSE+ is no longer active. Buy PULSE+ again to unlock it.';
     return 'That link was not recognised.';
   }
   function unlockWith(sid){
     return api('status',{session_id:sid}).then(function(res){
       var v=statusVerdict(res);
-      if(v.ok){plus.sid=sid;plus.lastOk=Date.now();savePlus();}
+      if(v.ok){plus.sid=sid;plus.lastOk=Date.now();plus.plan=v.plan||'';savePlus();}
       return v;
     });
   }
-  function startCheckout(plan){
-    var msg=$('keyMsg');msg.textContent='Opening secure checkout…';
+  function startCheckout(plan,msg){
+    msg=msg||$('keyMsg');msg.textContent='Opening secure checkout…';
     api('checkout',{plan:plan}).then(function(res){
       if(res&&res.url){window.location.href=res.url;}
       else{msg.textContent='Could not start checkout. Please try again in a moment.'+(res&&res.detail?' ('+res.detail+')':'');}
@@ -525,6 +618,11 @@ function statusVerdict(res){
   }
   ['buyYearly','planBuyY'].forEach(function(id){$(id).addEventListener('click',function(e){e.preventDefault();openPlus();startCheckout('yearly');});});
   ['buyMonthly','planBuyM'].forEach(function(id){$(id).addEventListener('click',function(e){e.preventDefault();openPlus();startCheckout('monthly');});});
+  ['buyForever','planBuyF'].forEach(function(id){$(id).addEventListener('click',function(e){e.preventDefault();openPlus();startCheckout('forever');});});
+  $('buySavers').addEventListener('click',function(e){e.preventDefault();startCheckout('savers',$('extrasMsg'));});
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tip]'),function(b){
+    b.addEventListener('click',function(e){e.preventDefault();startCheckout(b.getAttribute('data-tip'),$('extrasMsg'));});
+  });
   $('manage').addEventListener('click',function(e){
     e.preventDefault();var m=$('onMsg');m.textContent='Opening your subscription page…';
     api('portal',{session_id:plus.sid}).then(function(res){
@@ -538,23 +636,24 @@ function statusVerdict(res){
     else m.textContent=link;
   });
   $('deact').addEventListener('click',function(){
-    plus.sid='';plus.lastOk=0;savePlus();setPro(false);
+    plus.sid='';plus.lastOk=0;plus.plan='';savePlus();setPro(false);
   });
   $('plusClose').addEventListener('click',function(){$('plus').hidden=true;});
   if(configured&&plus.sid){
     // Re-check on every visit. A lapsed subscription locks again; being offline keeps it unlocked for a week.
     api('status',{session_id:plus.sid}).then(function(res){
       var v=statusVerdict(res);
-      if(v.ok){plus.lastOk=Date.now();savePlus();setPro(true);}
+      if(v.ok){plus.lastOk=Date.now();if(v.plan)plus.plan=v.plan;savePlus();setPro(true);}
       else if(v.reason!=='network'){plus.lastOk=0;savePlus();setPro(false);$('keyMsg').textContent=friendly(v);}
     });
   }
 
   // ---- plans section ----
   if(configured){
-    $('tierY').textContent='PULSE+ yearly · best value';$('tierM').textContent='PULSE+ monthly';
-    $('plansSub').textContent='The daily game stays free. PULSE+ adds extras. After you subscribe you are brought straight back here and PULSE+ unlocks.';
-    $('planBuyY').hidden=false;$('planBuyM').hidden=false;$('trialLi').hidden=false;
+    $('tierY').textContent='PULSE+ yearly · best value';$('tierM').textContent='PULSE+ monthly';$('tierF').textContent='PULSE+ forever';
+    $('plansSub').textContent='The daily game stays free. PULSE+ adds extras. After you pay you are brought straight back here and PULSE+ unlocks.';
+    ['planBuyY','planBuyM','planBuyF','trialLi','buySavers','tipRow'].forEach(function(id){$(id).hidden=false;});
+    $('tipPrices').hidden=true;
   }
 
   // ---- game ----
@@ -623,14 +722,18 @@ function statusVerdict(res){
 
   function prepareRun(){
     if(mode==='daily')cur={mode:'daily',key:dateKey,mod:todayMod,seed:todaySeed,seq:todaySeq};
-    else if(mode==='archive'){var k=$('archiveSel').value||prevKey(dateKey),sd=dailySeed(k);cur={mode:'archive',key:k,mod:dailyModifier(k),seed:sd,seq:buildSequence(sd)};}
-    else{var m=MODS[Math.floor(Math.random()*MODS.length)],rs=Math.floor(Math.random()*1e9);cur={mode:'practice',key:'practice',mod:m,seed:rs,seq:buildSequence(rs)};}
+    else if(mode==='archive'){var k=archiveKey(),sd=dailySeed(k);cur={mode:'archive',key:k,mod:dailyModifier(k),seed:sd,seq:buildSequence(sd)};}
+    else{
+      var pc=practiceChoice(),m=pc.mod||MODS[Math.floor(Math.random()*MODS.length)],rs=Math.floor(Math.random()*1e9);
+      cur={mode:'practice',key:'practice',mod:m,seed:rs,seq:buildSequence(rs),startRound:STAGES[pc.stage].from};
+    }
     cur.second=secondModifier(cur.seed,cur.mod);
+    if(!cur.startRound)cur.startRound=1;
   }
 
   function begin(){
     if(mode!=='daily'&&!isPro){setMode('daily');return;}
-    prepareRun();runId++;round=1;lives=MAX_LIVES;score=0;combo=0;history=[];shownStage=-1;
+    prepareRun();runId++;round=cur.startRound;lives=MAX_LIVES;score=0;combo=0;history=[];shownStage=-1;
     resultEl.hidden=true;startBtn.hidden=true;
     showPattern(runId);
     if(window.innerWidth<=820)$('play').scrollIntoView({behavior:'smooth',block:'start'});
@@ -657,7 +760,7 @@ function statusVerdict(res){
   }
 
   function finish(){
-    var rounds=round-1;
+    var rounds=round-cur.startRound;
     if(cur.mode==='daily'){
       var prev=stats.results[dateKey];
       if(!prev){stats.streak=stats.lastPlayed===prevKey(dateKey)?stats.streak+1:1;stats.lastPlayed=dateKey;}
@@ -666,7 +769,6 @@ function statusVerdict(res){
     }else if(cur.mode==='archive'){
       var a=stats.archive[cur.key];
       if(!a||score>a.score)stats.archive[cur.key]={score:score,rounds:rounds};
-      fillArchive();
     }
     stopTimer();saveStats();renderStats();refreshHeader();
     var label=cur.mode==='daily'?cur.key:cur.mode==='archive'?cur.key+' archive':'practice';
@@ -693,8 +795,11 @@ function statusVerdict(res){
   $('modeArchive').addEventListener('click',function(){setMode('archive');});
   $('modePractice').addEventListener('click',function(){setMode('practice');});
   $('archiveSel').addEventListener('change',refreshHeader);
+  $('practiceTwist').addEventListener('change',refreshHeader);
+  $('practiceStage').addEventListener('change',refreshHeader);
 
-  fillArchive();renderHud();renderStats();renderMode();applyTheme();renderPlus();refreshHeader();
+  grantWeeklySaver();useSavers();
+  fillArchive();fillPractice();renderHud();renderStats();renderMode();applyTheme();renderPlus();refreshHeader();
 
   // Anonymous total-visits counter: no cookies, no local storage, no visitor IDs. The server adds one to a single
   // number and stores nothing else. Every page load counts, so refreshes count again. The box stays hidden if it fails.
@@ -708,15 +813,28 @@ function statusVerdict(res){
 
   // After checkout Stripe sends buyers back as /?paid=SESSION. The same link, copied from the PULSE+ box, unlocks other devices.
   try{
-    var linked=new URLSearchParams(location.search).get('paid');
+    var params=new URLSearchParams(location.search),linked=params.get('paid');
     if(linked){
       if(configured){openPlus();$('keyMsg').textContent='Checking your subscription…';
         unlockWith(linked.trim()).then(function(v){
           if(v.ok){$('keyMsg').textContent='';setPro(true);$('onMsg').textContent='PULSE+ unlocked. Thank you!';}
           else $('keyMsg').textContent=friendly(v);
         });}
-      try{window.history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
     }
+    // Streak Saver packs come back as /?savers=SESSION. Each checkout adds 3 savers once on this device.
+    var sv=params.get('savers');
+    if(sv&&configured){
+      sv=sv.trim();$('saverLine').hidden=false;$('saverLine').textContent='Checking your Streak Saver purchase…';
+      if(stats.redeemed.indexOf(sv)>=0){saverNote='Those Streak Savers were already added.';renderSaver();}
+      else api('status',{session_id:sv}).then(function(res){
+        if(res&&res.paid===true&&res.plan==='savers'&&stats.redeemed.indexOf(sv)<0){
+          stats.savers+=3;stats.redeemed.push(sv);saveStats();saverNote='3 Streak Savers added. Thank you!';
+        }else saverNote=res&&typeof res.paid==='boolean'?'That payment was not for Streak Savers, or was refunded.':'Could not check your Streak Savers. Reload the page to try again.';
+        renderSaver();
+      });
+    }
+    if(params.get('thanks')){$('extrasMsg').textContent='Thank you for the tip! It helps keep PULSE free for everyone.';$('plans').scrollIntoView({block:'start'});}
+    if(linked||sv||params.get('thanks'))try{window.history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
   }catch(e){}
 })();
 </script>
